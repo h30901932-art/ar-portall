@@ -1,18 +1,8 @@
-import os
-import subprocess
-import sys
-
-# Dynamically install gspread and oauth2 if not already present
-try:
-    import gspread
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread", "google-auth"])
-    import gspread
-
-from google.oauth2.service_account import Credentials
 import streamlit as st
 import pandas as pd
 import json
+import gspread
+from google.oauth2.service_account import Credentials
 
 # --- PAGE SETUP ---
 st.set_page_config(
@@ -228,18 +218,15 @@ else:
             pass
 
     def process_inwards(in_cat, in_name, in_qty, in_price):
-        # 1. Load credentials from Streamlit secrets
-        # Ensure this matches the key structure in your secrets.toml
-        import json
+        # Load credentials
         creds_dict = json.loads(st.secrets["connections"]["gsheets"]["secrets_json"])
         creds = Credentials.from_service_account_info(creds_dict)
         client = gspread.authorize(creds)
-        
-        # 2. Open the sheet by URL
+            
+        # Open sheet and append
         sh = client.open_by_url("https://docs.google.com/spreadsheets/d/1V20nMjBeSn4Neyli1S6CWptiDDSKYf4-62-q2HVEyU8")
         worksheet = sh.worksheet("inventory")
     
-        # 3. Append the data directly as a row
         new_row = [in_cat.strip(), in_name.strip(), in_qty, in_price]
         worksheet.append_row(new_row)
         
