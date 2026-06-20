@@ -228,20 +228,20 @@ else:
             pass
 
     def process_inwards(in_cat, in_name, in_qty, in_price):
-    # 1. Load credentials from Streamlit secrets
-    # Ensure this matches the key structure in your secrets.toml
-    import json
-    creds_dict = json.loads(st.secrets["connections"]["gsheets"]["secrets_json"])
-    creds = Credentials.from_service_account_info(creds_dict)
-    client = gspread.authorize(creds)
+        # 1. Load credentials from Streamlit secrets
+        # Ensure this matches the key structure in your secrets.toml
+        import json
+        creds_dict = json.loads(st.secrets["connections"]["gsheets"]["secrets_json"])
+        creds = Credentials.from_service_account_info(creds_dict)
+        client = gspread.authorize(creds)
+        
+        # 2. Open the sheet by URL
+        sh = client.open_by_url("https://docs.google.com/spreadsheets/d/1V20nMjBeSn4Neyli1S6CWptiDDSKYf4-62-q2HVEyU8")
+        worksheet = sh.worksheet("inventory")
     
-    # 2. Open the sheet by URL
-    sh = client.open_by_url("https://docs.google.com/spreadsheets/d/1V20nMjBeSn4Neyli1S6CWptiDDSKYf4-62-q2HVEyU8")
-    worksheet = sh.worksheet("inventory")
-    
-    # 3. Append the data directly as a row
-    new_row = [in_cat.strip(), in_name.strip(), in_qty, in_price]
-    worksheet.append_row(new_row)
+        # 3. Append the data directly as a row
+        new_row = [in_cat.strip(), in_name.strip(), in_qty, in_price]
+        worksheet.append_row(new_row)
         
 
     def process_outwards(cat, name, qty):
