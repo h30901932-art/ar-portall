@@ -242,7 +242,9 @@ else:
             df_inv = pd.concat([df_inv, new_row], ignore_index=True)
             action_desc = f"Inwards: Created profile entry for '{name_clean}' under '{formatted_cat}'."
             
-        conn.append(worksheet="inventory", data=df_inv)
+        existing_data = conn.read(worksheet="inventory")
+        updated_df = pd.concat([existing_data, df_inv], ignore_index=True)
+        conn.update(worksheet="inventory", data=updated_df)
         log_change(st.session_state["current_user"], action_desc)
 
     def process_outwards(cat, name, qty):
