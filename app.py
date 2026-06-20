@@ -1,6 +1,18 @@
+import os
+import subprocess
+import sys
+
+# Dynamically install gspread and oauth2 if not already present
+try:
+    import gspread
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread", "google-auth"])
+    import gspread
+
+from google.oauth2.service_account import Credentials
 import streamlit as st
 import pandas as pd
-from streamlit_gsheets import GSheetsConnection
+import json
 
 # --- PAGE SETUP ---
 st.set_page_config(
