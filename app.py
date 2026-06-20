@@ -242,7 +242,7 @@ else:
             df_inv = pd.concat([df_inv, new_row], ignore_index=True)
             action_desc = f"Inwards: Created profile entry for '{name_clean}' under '{formatted_cat}'."
             
-        existing_data = conn.read(worksheet="inventory")
+        existing_data = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1V20nMjBeSn4Neyli1S6CWptiDDSKYf4-62-q2HVEyU8", worksheet="inventory")
         updated_df = pd.concat([existing_data, df_inv], ignore_index=True)
         conn.update(worksheet="inventory", data=updated_df)
         log_change(st.session_state["current_user"], action_desc)
