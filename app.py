@@ -215,37 +215,22 @@ else:
         except Exception:
             pass
 
-    def process_inwards(cat, name, qty, price):
-        df_inv = load_data_from_db()
-        formatted_cat = cat.strip().title()
-        name_clean = name.strip()
+    def process_inwards(in_cat, in_name, in_qty, in_price):
+    # 1. Load credentials from Streamlit secrets
+    # Ensure this matches the key structure in your secrets.toml
+    import json
+    creds_dict = json.loads(st.secrets["connections"]["gsheets"]["secrets_json"])
+    creds = Credentials.from_service_account_info(creds_dict)
+    client = gspread.authorize(creds)
+    
+    # 2. Open the sheet by URL
+    sh = client.open_by_url("https://docs.google.com/spreadsheets/d/1V20nMjBeSn4Neyli1S6CWptiDDSKYf4-62-q2HVEyU8")
+    worksheet = sh.worksheet("inventory")
+    
+    # 3. Append the data directly as a row
+    new_row = [in_cat.strip(), in_name.strip(), in_qty, in_price]
+    worksheet.append_row(new_row)
         
-        if not df_inv.empty and "item_name" in df_inv.columns and "category" in df_inv.columns:
-            mask = (df_inv["item_name"].str.lower() == name_clean.lower()) & (df_inv["category"].str.lower() == formatted_cat.lower())
-        else:
-            mask = pd.Series([False])
-        
-        if mask.any():
-            idx = df_inv[mask].index[0]
-            df_inv.at[idx, "stock"] = int(df_inv.at[idx, "stock"]) + int(qty)
-            df_inv.at[idx, "price"] = float(price)
-            action_desc = f"Inwards: Restocked +{qty} units of '{name_clean}'."
-        else:
-            new_id = f"ITEM{len(df_inv) + 1:03d}"
-            new_row = pd.DataFrame([{
-                "item_id": new_id,
-                "item_name": name_clean,
-                "category": formatted_cat,
-                "stock": int(qty),
-                "price": float(price)
-            }])
-            df_inv = pd.concat([df_inv, new_row], ignore_index=True)
-            action_desc = f"Inwards: Created profile entry for '{name_clean}' under '{formatted_cat}'."
-            
-        existing_data = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1V20nMjBeSn4Neyli1S6CWptiDDSKYf4-62-q2HVEyU8", worksheet="inventory")
-        updated_df = pd.concat([existing_data, df_inv], ignore_index=True)
-        conn.update(worksheet="inventory", data=updated_df)
-        log_change(st.session_state["current_user"], action_desc)
 
     def process_outwards(cat, name, qty):
         df_inv = load_data_from_db()
