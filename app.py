@@ -121,7 +121,6 @@ st.markdown("""
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1V20nMjBeSn4Neyli1S6CWptiDDSKYf4-62-q2HVEyU8"
 
 # Establish secure cloud sheet connection
-conn = st.connection("gsheets", type=GSheetsConnection)
 
 ADMIN_PASSWORD = "admin123"
 EMPLOYEE_PASSWORD = "staff123"
@@ -189,7 +188,7 @@ else:
 
     def load_data_from_db():
         try:
-            df = conn.read(spreadsheet=SHEET_URL, worksheet="inventory", ttl="0d")
+           
             df = df.dropna(subset=["item_id", "item_name"])
             return df
         except Exception:
@@ -197,7 +196,7 @@ else:
 
     def load_audit_log():
         try:
-            df = conn.read(spreadsheet=SHEET_URL, worksheet="audit_log", ttl="0d")
+           
             return df.dropna(subset=["action"])
         except Exception:
             return pd.DataFrame(columns=["id", "user_id", "action", "timestamp"])
@@ -213,7 +212,7 @@ else:
                 "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
             }])
             df_updated = pd.concat([df_log, new_row], ignore_index=True)
-            conn.update(worksheet="audit_log", data=df_updated)
+           
         except Exception:
             pass
 
@@ -245,7 +244,7 @@ else:
                 df_inv.at[idx, "stock"] = current_stock - int(qty)
                 unit_price = float(df_inv.at[idx, "price"])
                 
-                conn.update(worksheet="inventory", data=df_inv)
+               
                 log_change(st.session_state["current_user"], f"Outwards: Dispatched -{qty} units from '{name}'.")
                 
                 total_amount = int(qty) * unit_price
@@ -264,14 +263,14 @@ else:
         df_inv = load_data_from_db()
         if not df_inv.empty and "item_name" in df_inv.columns and "category" in df_inv.columns:
             df_inv = df_inv[~((df_inv["item_name"].str.lower() == item_name.lower()) & (df_inv["category"].str.lower() == cat.lower()))]
-            conn.update(worksheet="inventory", data=df_inv)
+            
         log_change(st.session_state["current_user"], f"🗑 ... Deleted item row '{item_name}'.")
 
     def delete_category_completely(cat):
         df_inv = load_data_from_db()
         if not df_inv.empty and "category" in df_inv.columns:
             df_inv = df_inv[df_inv["category"].str.lower() != cat.lower()]
-            conn.update(worksheet="inventory", data=df_inv)
+           
         log_change(st.session_state["current_user"], f"💥 Wiped entire category '{cat}'.")
 
     def get_latest_modifier():
